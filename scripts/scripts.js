@@ -143,10 +143,17 @@ function loadDelayed() {
   // load anything that can be postponed to the latest here
 }
 
-async function loadPage() {
+async function loadPageDefault() {
   await loadEager(document);
   await loadLazy(document);
   loadDelayed();
 }
 
-loadPage();
+export default function loadPage(el) {
+  loadEager(el);
+}
+
+// Only run if not in web component mode
+if (typeof window !== 'undefined' && !window.customElements?.get('aem-sites')) {
+  loadPageDefault();
+}

@@ -1,0 +1,36 @@
+<html><head><title>AEM Boilerplate Test</title><meta name="viewport" content="width=device-width,initial-scale=1"><script>window.app = window.app || {};
+        window.app.BUILD_MODE = "builtin";
+        window.hlx = window.hlx || {};
+        window.hlx.codeBasePath = '../';</script><link rel="stylesheet" href="styles.css"><script src="bundle.js"></script><script>function loadAEMFragments() {
+            if (!window.customElements.get('aem-sites')) {
+                console.error('loadAEMFragments: "<aem-sites ... />" is not defined');
+                return;
+            }
+
+            // Example fragments - update with your own URLs
+            const aemSitePages = [
+                'https://main--my-site--myorg.aem.page/fragments/header.plain.html',
+                'https://main--my-site--myorg.aem.page/fragments/hero.plain.html',
+                'https://main--my-site--myorg.aem.page/fragments/footer.plain.html',
+            ];
+
+            aemSitePages.forEach(path => {
+                const aemSites = document.createElement('aem-sites');
+                aemSites.path = path;
+                if (window.debug) {
+                    aemSites.setAttribute('debug', 'true');
+                }
+                document.body.appendChild(aemSites);
+            });
+        }
+
+        // Toggle debug mode with Ctrl+Shift+D
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'D' && event.shiftKey && event.ctrlKey) {
+                window.debug = !window.debug;
+                console.log('Debug mode:', window.debug);
+            }
+        });
+
+        window.debug = true;
+        window.addEventListener('load', loadAEMFragments);</script></head><body></body></html>

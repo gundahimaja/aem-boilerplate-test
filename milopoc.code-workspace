@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../milo"
+		},
+		{
+			"path": "../../milo-test"
+		},
+		{
+			"path": "../ccd-sites"
+		},
+		{
+			"path": "../../nest"
+		}
+	],
+	"settings": {}
+}

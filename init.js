@@ -45,11 +45,17 @@ class AEMBoilerplateTest extends LitElement {
 
   async loadAEMFragment(url) {
     try {
+      console.log('[aem-sites] Loading fragment from:', url);
       const baseUrl = new URL(url);
       window.hlx = window.hlx || {};
       window.hlx.contentBaseRoot = baseUrl.origin;
 
       const response = await customFetch({ resource: url, withCacheRules: true });
+      
+      if (!response.ok && response.type !== 'opaque') {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const processedHtml = await response.text();
 
       const parser = new DOMParser();
@@ -60,11 +66,40 @@ class AEMBoilerplateTest extends LitElement {
       main.innerHTML = fragmentBody.innerHTML;
 
       this.appendChild(main);
-      console.log('Fragment loaded and injected successfully');
+      console.log('[aem-sites] Fragment loaded successfully');
       loadPage(this);
-      console.log('Page loaded and decorated');
+      console.log('[aem-sites] Page decorated');
     } catch (error) {
-      console.error('Error loading fragment:', error);
+      console.error('[aem-sites] Error loading fragment:', error);
+      
+      // Show error in the component
+      const errorDiv = document.createElement('div');
+      errorDiv.style.cssText = 'padding: 20px; background: #fee; border: 1px solid #c00; border-radius: 4px; color: #c00; font-family: system-ui;';
+      errorDiv.innerHTML = `
+        <h3>⚠️ Failed to load AEM content</h3>
+        <p><strong>Error:</strong> ${error.message}</p>
+        <p><strong>URL:</strong> ${url}</p>
+        <p><strong>Possible causes:</strong></p>
+        <ul>
+          <li>CORS not enabled on the AEM server</li>
+          <li>URL does not exist</li>
+          <li>Network connection issue</li>
+        </ul>
+        <p><strong>Try:</strong></p>
+        <ul>
+          <li>Use .hlx.live or .hlx.page domain instead of .aem.page</li>
+          <li>Verify URL exists in browser</li>
+          <li>Check browser console for details</li>
+        </ul>
+      `;
+      this.appendChild(errorDiv);
+      
+      // Dispatch error event
+      this.dispatchEvent(new CustomEvent('aem:error', { 
+        detail: { error, url },
+        bubbles: true,
+        composed: true
+      }));
     }
   }
 

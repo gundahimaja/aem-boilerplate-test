@@ -58,10 +58,8 @@ class AEMSites extends LitElement {
     }
   `;
 
-  // Disable Shadow DOM - render to Light DOM so global styles apply
-  createRenderRoot() {
-    return this;
-  }
+  // Remove createRenderRoot override - use default Shadow DOM
+  // CSS will be loaded inside Shadow DOM for proper encapsulation
 
   constructor() {
     super();
@@ -80,24 +78,32 @@ class AEMSites extends LitElement {
   }
 
   async loadAEMFragment(url) {
+    console.log('[AEM Sites] Starting to load fragment:', url);
     try {
       const baseUrl = new URL(url);
+      console.log('[AEM Sites] Base URL:', baseUrl.origin);
+      
       window.hlx = window.hlx || {};
       window.hlx.contentBaseRoot = baseUrl.origin;
 
-      // Load AEM styles if not already loaded
+      // Fetch and inject AEM styles into Shadow DOM
       const stylesUrl = `${baseUrl.origin}/styles/styles.css`;
-      const styleId = `aem-styles-${baseUrl.host}`;
+      console.log('[AEM Sites] Fetching styles:', stylesUrl);
       
-      if (!document.getElementById(styleId)) {
-        const link = document.createElement('link');
-        link.id = styleId;
-        link.rel = 'stylesheet';
-        link.href = stylesUrl;
-        document.head.appendChild(link);
-        console.log('[AEM Sites] Styles loaded:', stylesUrl);
+      try {
+        const cssResponse = await fetch(stylesUrl);
+        const cssText = await cssResponse.text();
+        
+        // Inject styles into Shadow DOM
+        const style = document.createElement('style');
+        style.textContent = cssText;
+        this.shadowRoot.appendChild(style);
+        console.log('[AEM Sites] Styles injected into Shadow DOM');
+      } catch (cssError) {
+        console.error('[AEM Sites] Failed to load styles:', cssError);
       }
 
+      console.log('[AEM Sites] Fetching content...');
       const response = await customFetch({ resource: url, withCacheRules: true });
       
       if (!response.ok) {
@@ -105,6 +111,7 @@ class AEMSites extends LitElement {
       }
       
       const processedHtml = await response.text();
+      console.log('[AEM Sites] Content fetched, parsing...');
 
       const parser = new DOMParser();
       const fragmentDoc = parser.parseFromString(processedHtml, 'text/html');
@@ -113,11 +120,12 @@ class AEMSites extends LitElement {
       const main = document.createElement('main');
       main.innerHTML = fragmentBody.innerHTML;
 
-      this.appendChild(main);
+      this.shadowRoot.appendChild(main);
 
       console.log('[AEM Sites] Fragment loaded and injected successfully');
 
-      loadPage(this);
+      loadPage(this.shadowRoot);
+      console.log('[AEM Sites] loadPage() completed');
     } catch (error) {
       console.error('[AEM Sites] Error loading fragment:', error);
       

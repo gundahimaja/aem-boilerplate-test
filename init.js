@@ -58,6 +58,11 @@ class AEMSites extends LitElement {
     }
   `;
 
+  // Disable Shadow DOM - render to Light DOM so global styles apply
+  createRenderRoot() {
+    return this;
+  }
+
   constructor() {
     super();
     this.path = '';

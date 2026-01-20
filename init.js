@@ -94,6 +94,11 @@ class AEMSites extends LitElement {
       }
 
       const response = await customFetch({ resource: url, withCacheRules: true });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const processedHtml = await response.text();
 
       const parser = new DOMParser();
@@ -105,11 +110,35 @@ class AEMSites extends LitElement {
 
       this.appendChild(main);
 
-      console.log('Fragment loaded and injected successfully');
+      console.log('[AEM Sites] Fragment loaded and injected successfully');
 
       loadPage(this);
     } catch (error) {
-      console.error('Error loading fragment:', error);
+      console.error('[AEM Sites] Error loading fragment:', error);
+      
+      // Display error message to user
+      const errorDiv = document.createElement('div');
+      errorDiv.style.padding = '20px';
+      errorDiv.style.border = '2px solid #d32f2f';
+      errorDiv.style.borderRadius = '4px';
+      errorDiv.style.backgroundColor = '#ffebee';
+      errorDiv.style.color = '#c62828';
+      errorDiv.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      errorDiv.innerHTML = `
+        <h3 style="margin-top: 0;">AEM Content Load Error</h3>
+        <p><strong>Path:</strong> ${url}</p>
+        <p><strong>Error:</strong> ${error.message || error}</p>
+        <p style="font-size: 12px; color: #666;">
+          Common causes: CORS not configured, invalid path, or network issue.
+        </p>
+      `;
+      this.appendChild(errorDiv);
+      
+      // Dispatch error event
+      this.dispatchEvent(new CustomEvent('aem-load-error', { 
+        detail: { error, url },
+        bubbles: true 
+      }));
     }
   }
 

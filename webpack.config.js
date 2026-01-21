@@ -35,9 +35,19 @@ module.exports = (env, argv) => {
         },
         {
           test: /\.css$/,
-          use: [
-            isProduction ? MiniCssExtractPlugin.loader : "style-loader",
-            "css-loader",
+          oneOf: [
+            // For CSS imports with ?inline query - return as string
+            {
+              resourceQuery: /inline/,
+              type: 'asset/source',
+            },
+            // For regular CSS imports - process normally
+            {
+              use: [
+                isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+                "css-loader",
+              ],
+            },
           ],
         },
       ],
